@@ -2,6 +2,202 @@
 	<head>
 	</head>
 	<body>
-		Homework 1 index.html here
+		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+		<head>
+		<style>
+		body {
+			padding: 100px;
+			width: 1000px;
+			margin: auto;
+			text-align: left;
+			font-weight: 300;
+			font-family: 'Open Sans', sans-serif;
+			color: #121212;
+		}
+		h1, h2, h3, h4 {
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		</style>
+		<title>CS 184/284A Rasterizer</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+		</head>
+
+
+		<body>
+
+		<h1 align="middle">CS 184/284A: Computer Graphics and Imaging, Spring 2024</h1>
+		<h1 align="middle">Homework 1: Rasterizer</h1>
+		<h2 align="middle">Syed Moiz Rauf</h2>
+
+		<br><br>
+
+		<div>
+
+		<h2 align="middle">Overview</h2>
+		<p>In this project, I developed an implementation of a Rasterizer. The end result was a vector graphics renderer capable of transforming SVGs into PNGs. What I found fascinating about this project was the use of classes and inheritance, which allowed me to navigate through various layers of the rasterization pipeline efficiently. Initially, the system was set up to draw lines and points. I began my contribution by focusing on rendering triangles. From there, I moved on to adding color to these triangles, enhancing their visual appeal. The final step in my work involved applying textures to the triangles, which added a level of detail and realism to the images. This progression through different aspects of rasterization not only improved the renderer's capabilities but also deepened my understanding of how vector graphics can be effectively manipulated and displayed.</p>
+
+		<h2 align="middle">Section I: Rasterization</h2>
+
+		<h3 align="middle">Part 1: Rasterizing single-color triangles</h3>
+
+		<p>To rasterize a triangle the code was broken down into several critical steps. In the first step the bounding box of the triangle is calculated. This is done by identifying the minimum and maximum x and y coordinates among the triangle's three vertices. Minimum x and y coordinates are found using std::min on the x and y values of the vertices, respectively. Maximum x and y coordinates are found using std::max on the same sets of values. The results define the corners of the bounding box. Adjusting these values to integer boundaries (using std::floor for minimums and std::ceil for maximums) ensures that the algorithm covers every pixel that the triangle might touch.</p>
+
+  		<p>Once the bounding box is established, the algorithm iterates over each pixel within this area. For each pixel, a sample point at the center is considered to determine if the pixel lies within the triangle. This sample point is calculated by adding 0.5 to the x and y coordinates of the pixel's top-left corner. This adjustment is crucial for ensuring the algorithm accurately assesses whether the center of the pixel falls inside the triangle.</p>
+
+		<p>Then the individual points were tested if they lie within the triangle. This is achieved through the edge function, which evaluates the position of the sample point relative to each edge of the triangle. For each of the triangle's sides, a value is calculated that reflects the position of the sample point in relation to that side: The sign of this value (positive or negative) indicates which side of the edge the point is on. By comparing these values for all three edges, the algorithm can determine if the point is inside the triangle.</p>
+
+		<p>If the sample point of a pixel is found to be inside the triangle (all edge function values have the same sign), that pixel is colored. This step translates the abstract geometric shape of the triangle into a concrete representation on the pixel grid. The actual coloring is done through the function fill_pixel, which sets the pixel to the desired color.</p>
+
+		<p>This method is streamlined and efficient, focusing solely on pixels within the bounding box and utilizing direct calculations to ascertain whether each pixel should be filled. By confining our checks to a smaller area and employing straightforward mathematical evaluations, the algorithm avoids unnecessary computations, ensuring an efficient process for rendering the triangle in a pixelated form.</p>
+
+		<div align="middle">
+			<table style="width=100%">
+				<tr>
+					<td>
+						<img src="images/screenshot_2-15_0-55-4.png" align="middle" width="400px"/>
+						<figcaption align="middle">Without Magnifier</figcaption>
+					</td>
+					<td>
+						<img src="images/screenshot_2-15_0-56-11.png" align="middle" width="400px"/>
+						<figcaption align="middle">With Magnifier</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+
+		<h3 align="middle">Part 2: Antialiasing triangles</h3>
+
+		<p>The supersampling method smoothed out the rough edges using special storage called a sample buffer, which holds more detailed color information than the final picture needs. When drawing shapes like triangles, this method checks which parts of this detailed picture should be colored in. Then, it figures out how much of each tiny part of the final picture is covered by the shape. In the end, it averages out all these details to create the final picture, which has smoother edges and looks better because it used all that extra detail to get rid of the rough edges.</p>
+
+		<p>The supersampling method helps blend the triangle's edge into the background more softly by mixing colors based on how much of the edge covers the detailed parts. In the end, we average out all these detailed colors for the final image, which helps get rid of those harsh, jagged lines making everything look smoother and nicer.</p>
+
+		<div style="text-align: center; width: 100%;">
+			<table style="margin-left: auto; margin-right: auto; width: 90%;">
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-16_2-41-50.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Sample Rate = 1</figcaption>
+					</td>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-16_2-42-10.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Sample Rate = 4</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center; width: 100%;" colspan="2">
+						<img src="images/screenshot_2-16_2-42-16.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Sample Rate = 16</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		
+
+		<h3 align="middle">Part 3: Transforms</h3>
+
+		<p>I change the code to make the robot look like it’s doing jumping jacks. I changed the colors to differentiate the different parts of the robots.</p>
+
+		<div style="text-align: center; width: 100%;">
+			<table style="margin-left: auto; margin-right: auto; width: 90%;">
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-17_16-15-7.png" style="width: 100%; max-width: 600px;"/>
+						<figcaption>My Robot</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		<h2 align="middle">Section II: Sampling</h2>
+
+		<h3 align="middle">Part 4: Barycentric coordinates</h3>
+
+		<p>Barycentric coordinates are a way to describe a point's position within a triangle using the triangle's vertices as reference points. Think of it as a balancing act where each vertex of the triangle has a weight assigned to it. These weights show how much influence each vertex has on any given point inside the triangle.</p>
+		
+		<div style="text-align: center; width: 100%;">
+			<table style="margin-left: auto; margin-right: auto; width: 90%;">
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-17_19-36-17.png" style="width: 100%; max-width: 600px;"/>
+						<figcaption>Color Wheel</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+
+		<p>Pixel sampling involves mapping textures to the triangles in a vector graphic by using barycentric and Cartesian coordinates to calculate UV coordinates. These UV coordinates are then used to sample textures, determining the colors to fill the textured triangles, thereby creating a textured image. </p>
+
+		<p>The nearest sampling method rounds the calculated UV coordinates to the nearest integer values to directly select the closest texel for color sampling. This method fills the color based on the nearest texel's color. Conversely, bilinear sampling averages the colors of the four closest texels surrounding the calculated coordinates, creating a blended color through linear interpolation in two directions, resulting in a smoother fill value.</p>
+
+		<div style="text-align: center; width: 100%;">
+			<table style="margin-left: auto; margin-right: auto; width: 90%;">
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-19_3-53-33.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Nearest Sampling, Sample Rate = 1</figcaption>
+					</td>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-19_3-53-39.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Bilinear Sampling, Sample Rate = 1</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-19_3-53-46.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Nearest Sampling, Sample Rate = 16</figcaption>
+					</td>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-19_3-53-50.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>Bilinear Sampling, Sample Rate = 16</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		
+		<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+		<p>Level sampling in graphics helps pick the right detail in textures for 3D models to make them look good without making the computer work too hard.  </p>
+		<p>In my implementation of rasterize_textured_triangle, I start by figuring out the smallest box that can contain the whole triangle, which helps me limit where I need to work on the screen. I use a technique called supersampling to smooth out the image by breaking down each pixel into smaller parts, which really helps with making edges look less jagged.</p>
+		<p>Then, I go through each pixel and its tiny parts within this box. For each part, I calculate its position relative to the triangle's corners. This step is crucial because it lets me use something called barycentric coordinates to figure out if a point is inside the triangle and to find the corresponding spot on the texture.</p>
+		<p>To make sure the texture looks good and the performance is optimized, I compute how much the texture coordinates change across the triangle. This helps me pick the right level of detail from the texture's mipmap chain, which is just a collection of the same image at different resolutions. Choosing the correct mipmap level is key to reducing rough edges and speeding things up.</p>
+		<p>Depending on the sampling method—either picking the nearest texel or blending the nearest four texels—I sample the texture at the right coordinates and mipmap level. Finally, I apply the sampled color to the pixel, averaging out the colors if I'm using supersampling, to get a smoother final image.</p>
+		<p>When applying textures, Pixel Sampling makes images look better by checking several spots of a texture for each pixel. This gives high quality but can slow down the computer and use a lot of memory. Level Sampling chooses the best detail level for a texture, speeding things up and saving memory, but the texture might not look as nice. Changing Samples per Pixel affects how smooth and detailed the image looks versus how fast it runs and how much memory it uses. More samples mean better quality but slower performance and more memory needed.</p>
+		<p>The choices are about finding the right balance between how fast things run, how much memory is used, and how good the images look. Pixel sampling is slow but high quality, level sampling is quicker and saves memory but might lower quality, and adjusting samples per pixel helps find a middle ground.</p>
+
+		<div style="text-align: center; width: 100%;">
+			<table style="margin-left: auto; margin-right: auto; width: 90%;">
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-21_23-45-41.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>L_ZERO and P_NEAREST</figcaption>
+					</td>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-21_23-45-51.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>L_ZERO and P_LINEAR</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-21_23-46-49.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>L_NEAREST and P_NEAREST</figcaption>
+					</td>
+					<td style="text-align: center; width: 50%;">
+						<img src="images/screenshot_2-21_23-47-15.png" style="width: 100%; max-width: 400px;"/>
+						<figcaption>L_NEAREST and P_LINEAR</figcaption>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		</body>
+		</html>
+
+				
 	</body>
 </html>
